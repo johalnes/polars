@@ -88,7 +88,7 @@ pub(super) fn date_ranges(
         Ok(())
     };
 
-    let out = temporal_ranges_impl_broadcast(&start, &end, &interval, range_impl, &mut builder)?;
+    let out = temporal_ranges_impl_broadcast(&start, &end, range_impl, &mut builder)?;
 
     let to_type = DataType::List(Box::new(DataType::Date));
     out.cast(&to_type)
