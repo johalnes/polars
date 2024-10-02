@@ -11,7 +11,7 @@ const CAPACITY_FACTOR: usize = 5;
 
 pub(super) fn date_range(
     s: &[Column],
-    interval: Duration,
+    interval: &Column,
     closed: ClosedWindow,
 ) -> PolarsResult<Column> {
     let start = &s[0];
@@ -55,10 +55,8 @@ pub(super) fn date_ranges(
     let start = &s[0];
     let end = &s[1];
 
-    polars_ensure!(
-        interval.is_full_days(),
-        ComputeError: "`interval` input for `date_ranges` must consist of full days, got: {interval}"
-    );
+    let interval = interval.strict_cast(&DataType::Duration(TimeUnit::Milliseconds))?;
+    let interval = interval.i64().unwrap();
 
     let start = start.strict_cast(&DataType::Date)?.cast(&DataType::Int64)?;
     let end = end.strict_cast(&DataType::Date)?.cast(&DataType::Int64)?;
@@ -73,12 +71,12 @@ pub(super) fn date_ranges(
         DataType::Int32,
     );
 
-    let range_impl = |start, end, builder: &mut ListPrimitiveChunkedBuilder<Int32Type>| {
+    let range_impl = |start, end, interval, builder: &mut ListPrimitiveChunkedBuilder<Int32Type>| {
         let rng = datetime_range_impl(
             PlSmallStr::EMPTY,
             start,
             end,
-            interval,
+            Duration::from_milliseconds(interval),
             closed,
             TimeUnit::Milliseconds,
             None,
@@ -90,7 +88,7 @@ pub(super) fn date_ranges(
         Ok(())
     };
 
-    let out = temporal_ranges_impl_broadcast(&start, &end, range_impl, &mut builder)?;
+    let out = temporal_ranges_impl_broadcast(&start, &end, &interval, range_impl, &mut builder)?;
 
     let to_type = DataType::List(Box::new(DataType::Date));
     out.cast(&to_type)
