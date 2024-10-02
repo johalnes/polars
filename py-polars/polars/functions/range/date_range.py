@@ -3,7 +3,7 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING, overload
 
-from polars import functions as F
+from polars import functions as F, Expr
 from polars._utils.parse import parse_into_expression
 from polars._utils.wrap import wrap_expr
 from polars.functions.range._utils import parse_interval_argument
