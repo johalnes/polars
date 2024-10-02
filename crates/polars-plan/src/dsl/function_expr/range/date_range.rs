@@ -1,4 +1,5 @@
 use polars_core::prelude::*;
+use std::str::FromStr;
 use polars_core::utils::arrow::temporal_conversions::MILLISECONDS_IN_DAY;
 use polars_time::{datetime_range_impl, ClosedWindow, Duration};
 
@@ -8,6 +9,19 @@ use super::utils::{
 };
 
 const CAPACITY_FACTOR: usize = 5;
+
+pub fn parse_intervals(intervals: Vec<String>) -> Vec<Duration> {
+    intervals
+        .into_iter()
+        .map(|interval| {
+            if let Ok(td) = chrono::Duration::from_str(&interval) {
+                Duration::from_milliseconds(td.num_milliseconds())
+            } else {
+                panic!("Invalid interval format: {}", interval);
+            }
+        })
+        .collect()
+}
 
 pub(super) fn date_range(
     s: &[Column],
