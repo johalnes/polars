@@ -71,6 +71,7 @@ def _timedelta_to_duration_string(td: timedelta) -> str:
 def timedelta_to_milliseconds(td: timedelta) -> int:
     """Convert a Python timedelta object to milliseconds."""
     return int(td.total_seconds() * 1000)
+def negate_duration_string(duration: str) -> str:
     """Negate a Polars duration string."""
     if duration.startswith("-"):
         return duration[1:]
