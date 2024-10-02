@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import Union, List
 
-from polars._utils.convert import parse_as_duration_string
+from polars._utils.convert import parse_as_duration_string, timedelta_to_milliseconds
 
 
 def parse_interval_argument(interval: Union[str, timedelta, List[Union[str, timedelta]]]) -> List[str]:
@@ -14,7 +14,7 @@ def parse_interval_argument(interval: Union[str, timedelta, List[Union[str, time
     parsed_intervals = []
     for intv in interval:
         if isinstance(intv, timedelta):
-            parsed_intervals.append(parse_as_duration_string(intv))
+            parsed_intervals.append(timedelta_to_milliseconds(intv))
         else:
             if " " in intv:
                 intv = intv.replace(" ", "")
