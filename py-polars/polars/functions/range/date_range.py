@@ -291,7 +291,7 @@ def date_ranges(
     │ 2022-01-02 ┆ 2022-01-03 ┆ [2022-01-02, 2022-01-03]             │
     └────────────┴────────────┴──────────────────────────────────────┘
     """
-    interval_expr = parse_into_expression(parse_interval_argument(interval))
+    interval = parse_interval_argument(interval)
     start_pyexpr = parse_into_expression(start)
     end_pyexpr = parse_into_expression(end)
 
