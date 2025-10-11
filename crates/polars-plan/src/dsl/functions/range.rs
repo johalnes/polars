@@ -53,12 +53,12 @@ pub fn date_range(start: Expr, end: Expr, interval: Duration, closed: ClosedWind
 
 /// Create a column of date ranges from a `start` and `stop` expression.
 #[cfg(feature = "temporal")]
-pub fn date_ranges(start: Expr, end: Expr, interval: Duration, closed: ClosedWindow) -> Expr {
-    let input = vec![start, end];
+pub fn date_ranges(start: Expr, end: Expr, interval: Expr, closed: ClosedWindow) -> Expr {
+    let input = vec![start, end, interval];
 
     Expr::Function {
         input,
-        function: FunctionExpr::Range(RangeFunction::DateRanges { interval, closed }),
+        function: FunctionExpr::Range(RangeFunction::DateRanges { closed }),
         options: FunctionOptions {
             collect_groups: ApplyOptions::GroupWise,
             flags: FunctionFlags::default() | FunctionFlags::ALLOW_RENAME,

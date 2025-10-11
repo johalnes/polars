@@ -1,6 +1,6 @@
 use polars_core::prelude::*;
 use polars_core::utils::arrow::temporal_conversions::MILLISECONDS_IN_DAY;
-use polars_time::{datetime_range_impl, ClosedWindow, Duration};
+use polars_time::{datetime_range_impl, ClosedWindow, Duration, Milliseconds};
 
 use super::utils::{
     ensure_range_bounds_contain_exactly_one_value, temporal_ranges_impl_broadcast,
@@ -49,22 +49,25 @@ pub(super) fn date_range(
 
 pub(super) fn date_ranges(
     s: &[Column],
-    interval: Duration,
     closed: ClosedWindow,
 ) -> PolarsResult<Column> {
     let start = &s[0];
     let end = &s[1];
+    let interval = &s[2];
 
-    polars_ensure!(
-        interval.is_full_days(),
-        ComputeError: "`interval` input for `date_ranges` must consist of full days, got: {interval}"
-    );
+    // polars_ensure!(
+    //     interval.is_full_days(),
+    //     ComputeError: "`interval` input for `date_ranges` must consist of full days, got: {interval}"
+    // );
 
     let start = start.strict_cast(&DataType::Date)?.cast(&DataType::Int64)?;
     let end = end.strict_cast(&DataType::Date)?.cast(&DataType::Int64)?;
+    let interval: Column = interval.strict_cast(&DataType::Duration(TimeUnit::Milliseconds))?;
+
 
     let start = start.i64().unwrap() * MILLISECONDS_IN_DAY;
     let end = end.i64().unwrap() * MILLISECONDS_IN_DAY;
+    let interval = interval.duration().unwrap();
 
     let mut builder = ListPrimitiveChunkedBuilder::<Int32Type>::new(
         start.name().clone(),
@@ -73,7 +76,7 @@ pub(super) fn date_ranges(
         DataType::Int32,
     );
 
-    let range_impl = |start, end, builder: &mut ListPrimitiveChunkedBuilder<Int32Type>| {
+    let range_impl = |start, end, interval:Duration, builder: &mut ListPrimitiveChunkedBuilder<Int32Type>| {
         let rng = datetime_range_impl(
             PlSmallStr::EMPTY,
             start,
@@ -90,7 +93,7 @@ pub(super) fn date_ranges(
         Ok(())
     };
 
-    let out = temporal_ranges_impl_broadcast(&start, &end, range_impl, &mut builder)?;
+    let out = temporal_ranges_impl_broadcast(&start, &end,&interval, range_impl, &mut builder)?;
 
     let to_type = DataType::List(Box::new(DataType::Date));
     out.cast(&to_type)

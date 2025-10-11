@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+from datetime import timedelta
 from typing import TYPE_CHECKING, overload
 
 from polars import functions as F
@@ -291,11 +292,16 @@ def date_ranges(
     │ 2022-01-02 ┆ 2022-01-03 ┆ [2022-01-02, 2022-01-03]             │
     └────────────┴────────────┴──────────────────────────────────────┘
     """
-    interval = parse_interval_argument(interval)
+    if isinstance(interval, timedelta):
+        interval = parse_interval_argument(interval)
+
+    interval_pyexpr = parse_into_expression(interval)
     start_pyexpr = parse_into_expression(start)
     end_pyexpr = parse_into_expression(end)
 
-    result = wrap_expr(plr.date_ranges(start_pyexpr, end_pyexpr, interval, closed))
+    result = wrap_expr(
+        plr.date_ranges(start_pyexpr, end_pyexpr, interval_pyexpr, closed)
+    )
 
     if eager:
         return F.select(result).to_series()

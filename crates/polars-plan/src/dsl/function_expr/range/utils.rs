@@ -1,6 +1,6 @@
 use polars_core::prelude::{
     polars_bail, polars_ensure, ChunkedArray, Column, Int64Chunked, IntoColumn, ListBuilderTrait,
-    ListPrimitiveChunkedBuilder, PolarsIntegerType, PolarsResult,
+    ListPrimitiveChunkedBuilder, PolarsIntegerType, PolarsResult,DurationType
 };
 
 pub(super) fn temporal_series_to_i64_scalar(s: &Column) -> Option<i64> {
@@ -141,12 +141,14 @@ where
 pub(super) fn temporal_ranges_impl_broadcast<T, U, F>(
     start: &ChunkedArray<T>,
     end: &ChunkedArray<T>,
+    interval: &ChunkedArray<D>,
     range_impl: F,
     builder: &mut ListPrimitiveChunkedBuilder<U>,
 ) -> PolarsResult<Column>
 where
     T: PolarsIntegerType,
     U: PolarsIntegerType,
+    D: DurationType,
     F: Fn(T::Native, T::Native, &mut ListPrimitiveChunkedBuilder<U>) -> PolarsResult<()>,
 {
     match (start.len(), end.len()) {
